@@ -13,12 +13,12 @@ test_data:测试数据集<br>
 | Attention_LSTM     | 0.93  | 0.86  | 速度较快                       |
 | BERT_Native        | 0.96  | 0.91  | 速度非常慢，显存占用较高               |
 | BERT_Scratch       | /     | /     | 适配最新版本库，修正前向传播labels逻辑     |
-| BERT_Trainer       | 0.94  | 0.94  | 适配最新的库，kaggle跑出来了          |
+| BERT_Trainer       | 0.94  | 0.94  | 适配最新版本库，kaggle跑出来了         |
 | Capsule_LSTM       | /     | /     | input和target的batch_size不匹配 |
 | CNN                | 0.75  | 0.75  | 改为跑20轮，效果有一定提升             |
 | CNN_LSTM           | 0.81  | 0.78  | 比起纯CNN效果有一定提升              |
 | DistilBERT_Native  | 0.97  | 0.91  | 速度非常慢，显存占用非常高              |
-| DistilBERT_Trainer | 0.93  | 0.93  | 适配了最新的库，kaggle跑出来了         |
+| DistilBERT_Trainer | 0.93  | 0.93  | 适配最新版本库，kaggle跑出来了         |
 | GRU                | 0.86  | 0.86  | 速度较快，效果还行                  |
 | LSTM               | 0.75  | 0.75  | 速度较快，效果一般                  |
 | RoBERTa_Trainer    | 0.95  | 0.95  | 适配了最新的库，kaggle跑出来了         |
