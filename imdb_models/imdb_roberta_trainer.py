@@ -2,6 +2,7 @@ import os
 import sys
 import logging
 import datasets
+import evaluate
 
 import pandas as pd
 import numpy as np
@@ -45,7 +46,7 @@ if __name__ == '__main__':
 
     model = RobertaForSequenceClassification.from_pretrained('roberta-base')
 
-    metric = datasets.load_metric("accuracy")
+    metric = evaluate.load("accuracy")
 
     def compute_metrics(eval_pred):
         logits, labels = eval_pred
