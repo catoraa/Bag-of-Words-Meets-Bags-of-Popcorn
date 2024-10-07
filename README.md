@@ -12,9 +12,9 @@ test_data:测试数据集<br>
 |:-------------------|:------|:------|:------------------------------|
 | Attention_LSTM     | 0.93  | 0.86  | 速度较快                          |
 | BERT_Native        | 0.96  | 0.91  | 速度非常慢，显存占用较高                  |
-| BERT_Scratch       | 0.93  | 0.93  | 适配最新版本库，修正前向传播labels逻辑问题      |
+| BERT_Scratch       | 0.93  | 0.93  | 修正前向传播时labels参数调用逻辑问题         |
 | BERT_Trainer       | 0.94  | 0.94  | 适配最新版本库，kaggle跑出来了            |
-| Capsule_LSTM       | /     | /     | 修正torch.cat时的tensor的size不匹配问题 |
+| Capsule_LSTM       | /     | /     | 修正torch.cat时的tensor size不匹配问题 |
 | CNN                | 0.75  | 0.75  | 改为跑20轮，效果有一定提升                |
 | CNN_LSTM           | 0.81  | 0.78  | 比起纯CNN效果有一定提升                 |
 | DistilBERT_Native  | 0.97  | 0.91  | 速度非常慢，显存占用非常高                 |
