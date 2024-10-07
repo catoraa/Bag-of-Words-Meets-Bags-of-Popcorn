@@ -39,6 +39,7 @@ class BertScratch(BertPreTrainedModel):
 
         pooled_output = self.dropout(pooled_output)
         logits = self.classifier(pooled_output)
+        # 问题修正，调整了labels参数调用的逻辑，无labels时不计算loss
         loss = None
         if labels is not None:
             loss_fct = nn.CrossEntropyLoss()
