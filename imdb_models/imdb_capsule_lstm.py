@@ -98,7 +98,10 @@ class SentimentNet(nn.Module):
         states, hidden = self.encoder(embeddings.permute(1, 0, 2))  # LSTM 编码
         states = states.permute(1, 0, 2)
         capsule = self.capsule(states)  # Capsule 网络
+
+        # 问题修正，调整了取capsule的顺序，以适配tensor size的不一致
         encoding = torch.cat([capsule[:, 0, :], capsule[:, -1, :]], dim=1)  # 拼接 Capsule 输出
+
         outputs = self.decoder(encoding)  # 解码得到分类结果
         return outputs  # 返回最终的输出
 
