@@ -12,7 +12,7 @@ test_data:测试数据集<br>
 |:-------------------|:------|:------|:---------------------------|
 | Attention_LSTM     | 0.93  | 0.86  | 速度较快                       |
 | BERT_Native        | 0.96  | 0.91  | 速度非常慢，显存占用较高               |
-| BERT_Scratch       | /     | /     | 适配最新版本库，修正前向传播labels逻辑     |
+| BERT_Scratch       | 0.93  | 0.93  | 适配最新版本库，修正前向传播labels逻辑     |
 | BERT_Trainer       | 0.94  | 0.94  | 适配最新版本库，kaggle跑出来了         |
 | Capsule_LSTM       | /     | /     | input和target的batch_size不匹配 |
 | CNN                | 0.75  | 0.75  | 改为跑20轮，效果有一定提升             |
