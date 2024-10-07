@@ -47,14 +47,13 @@ class Capsule(nn.Module):
                 nn.init.xavier_normal_(torch.empty(1, self.num_hiddens, self.num_capsule * self.num_hiddens)))
 
     def forward(self, inputs):
-        print(inputs.shape)
-        print(self.W.shape)
+        #print(inputs.shape)
+        #print(self.W.shape)
         u_hat_vecs = torch.matmul(inputs, self.W)
         batch_size = inputs.size(0)
         input_num_capsule = inputs.size(1)
-        print(u_hat_vecs.shape)
+        #print(u_hat_vecs.shape)
         u_hat_vecs = u_hat_vecs.view(batch_size, input_num_capsule, self.num_capsule, -1)
-
 
         u_hat_vecs = u_hat_vecs.permute(
             0, 2, 1, 3).contiguous()  # (batch_size,num_capsule,input_num_capsule,dim_capsule)
@@ -97,8 +96,9 @@ class SentimentNet(nn.Module):
     def forward(self, inputs):
         embeddings = self.embedding(inputs)  # 获取词嵌入
         states, hidden = self.encoder(embeddings.permute(1, 0, 2))  # LSTM 编码
+        states = states.permute(1, 0, 2)
         capsule = self.capsule(states)  # Capsule 网络
-        encoding = torch.cat([capsule[0], capsule[-1]], dim=1)  # 拼接 Capsule 输出
+        encoding = torch.cat([capsule[:, 0, :], capsule[:, -1, :]], dim=1)  # 拼接 Capsule 输出
         outputs = self.decoder(encoding)  # 解码得到分类结果
         return outputs  # 返回最终的输出
 
@@ -147,7 +147,7 @@ if __name__ == '__main__':
                 loss = loss_function(score, label)
                 loss.backward()
                 optimizer.step()
-                train_acc += accuracy_score(torch.argmax(score.cpu().data,dim=1), label.cpu())
+                train_acc += accuracy_score(torch.argmax(score.cpu().data, dim=1), label.cpu())
                 train_loss += loss
 
                 pbar.set_postfix({'epoch': '%d' % (epoch),
