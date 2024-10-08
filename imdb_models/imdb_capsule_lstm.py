@@ -29,7 +29,7 @@ use_gpu = True
 
 
 class Capsule(nn.Module):
-    def __init__(self, num_hiddens, bidirectional, num_capsule=5, dim_capsule=5, routings=4, **kwargs):
+    def __init__(self, num_hiddens, bidirectional, num_capsule=5, dim_capsule=256, routings=4, **kwargs):
         super(Capsule, self).__init__(**kwargs)
         self.num_hiddens = num_hiddens
         self.bidirectional = bidirectional
@@ -53,10 +53,9 @@ class Capsule(nn.Module):
         batch_size = inputs.size(0)
         input_num_capsule = inputs.size(1)
         #print(u_hat_vecs.shape)
-        u_hat_vecs = u_hat_vecs.view(batch_size, input_num_capsule, self.num_capsule, -1)
-
-        u_hat_vecs = u_hat_vecs.permute(
-            0, 2, 1, 3).contiguous()  # (batch_size,num_capsule,input_num_capsule,dim_capsule)
+        u_hat_vecs = u_hat_vecs.view((batch_size, input_num_capsule, self.num_capsule, self.dim_capsule))
+        u_hat_vecs = u_hat_vecs.permute(0, 2, 1,
+                                        3).contiguous()  # (batch_size,num_capsule,input_num_capsule,dim_capsule)
         with torch.no_grad():
             b = torch.zeros_like(u_hat_vecs[:, :, :, 0])
         for i in range(self.routings):
@@ -86,7 +85,7 @@ class SentimentNet(nn.Module):
         self.encoder = nn.LSTM(input_size=self.embed_size, hidden_size=self.num_hiddens,
                                num_layers=self.num_layers, bidirectional=self.bidirectional,
                                dropout=0)
-        # self.attention = Attention(num_hiddens=self.num_hiddens, bidirectional=self.bidirectional)
+        #self.attention = Attention(num_hiddens=self.num_hiddens, bidirectional=self.bidirectional)
         self.capsule = Capsule(num_hiddens=self.num_hiddens, bidirectional=self.bidirectional)
         if self.bidirectional:
             self.decoder = nn.Linear(num_hiddens * 4, labels)
@@ -94,16 +93,14 @@ class SentimentNet(nn.Module):
             self.decoder = nn.Linear(num_hiddens * 2, labels)
 
     def forward(self, inputs):
-        embeddings = self.embedding(inputs)  # 获取词嵌入
-        states, hidden = self.encoder(embeddings.permute(1, 0, 2))  # LSTM 编码
-        states = states.permute(1, 0, 2)
-        capsule = self.capsule(states)  # Capsule 网络
-
-        # 问题修正，调整了取capsule的顺序，以适配tensor size的不一致
-        encoding = torch.cat([capsule[:, 0, :], capsule[:, -1, :]], dim=1)  # 拼接 Capsule 输出
-
-        outputs = self.decoder(encoding)  # 解码得到分类结果
-        return outputs  # 返回最终的输出
+        embeddings = self.embedding(inputs)
+        states, hidden = self.encoder(embeddings.permute(1, 0, 2))
+        #print(states.shape)
+        capsule = self.capsule(states.permute(1, 0, 2)).permute(1, 0, 2)
+        encoding = torch.cat([capsule[0], capsule[-1]], dim=1)
+        outputs = self.decoder(encoding)
+        #print(outputs)
+        return outputs
 
 
 if __name__ == '__main__':
@@ -126,7 +123,6 @@ if __name__ == '__main__':
     net.to(device)
     loss_function = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=lr)
-
     train_set = torch.utils.data.TensorDataset(train_features, train_labels)
     val_set = torch.utils.data.TensorDataset(val_features, val_labels)
     test_set = torch.utils.data.TensorDataset(test_features, )
@@ -150,7 +146,8 @@ if __name__ == '__main__':
                 loss = loss_function(score, label)
                 loss.backward()
                 optimizer.step()
-                train_acc += accuracy_score(torch.argmax(score.cpu().data, dim=1), label.cpu())
+                train_acc += accuracy_score(torch.argmax(score.cpu().data,
+                                                         dim=1), label.cpu())
                 train_loss += loss
 
                 pbar.set_postfix({'epoch': '%d' % (epoch),
@@ -193,5 +190,5 @@ if __name__ == '__main__':
                 pbar.update(1)
 
     result_output = pd.DataFrame(data={"id": test["id"], "sentiment": test_pred})
-    result_output.to_csv("../result/capsule_lstm.csv", index=False, quoting=3)
+    result_output.to_csv("../result/capsule_lstm3.csv", index=False, quoting=3)
     logging.info('result saved!')

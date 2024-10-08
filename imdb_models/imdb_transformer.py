@@ -29,7 +29,6 @@ lr = 0.05
 device = torch.device('cuda:0')
 use_gpu = True
 
-
 # Read data from files
 train = pd.read_csv("../test_data/labeledTrainData.tsv", header=0, delimiter="\t", quoting=3)
 test = pd.read_csv("../test_data/testData.tsv", header=0, delimiter="\t", quoting=3)
@@ -105,8 +104,9 @@ def length_to_mask(lengths):
     return mask
 
 
+# 定位向量+编码
 class PositionalEncoding(nn.Module):
-    def __init__(self, d_model, dropout=0.1, max_len=512):
+    def __init__(self, d_model, dropout=0.1, max_len=10240):
         super(PositionalEncoding, self).__init__()
 
         pe = torch.zeros(max_len, d_model)
@@ -118,7 +118,7 @@ class PositionalEncoding(nn.Module):
         self.register_buffer('pe', pe)
 
     def forward(self, x):
-        x = x + self.pe[:x.size(0), :]
+        x = x + self.pe[:x.size(0), :].to(x.device)  # 确保位置编码在相同设备上
         return x
 
 
@@ -190,7 +190,7 @@ if __name__ == '__main__':
     train_reviews = [(vocab.convert_tokens_to_ids(sentence), train_labels[i])
                      for i, sentence in enumerate(clean_train_reviews)]
     test_reviews = [vocab.convert_tokens_to_ids(sentence)
-                     for sentence in clean_test_reviews]
+                    for sentence in clean_test_reviews]
 
     train_reviews, val_reviews, train_labels, val_labels = train_test_split(train_reviews, train_labels,
                                                                             test_size=0.2, random_state=0)
@@ -270,6 +270,5 @@ if __name__ == '__main__':
                 pbar.update(1)
 
     result_output = pd.DataFrame(data={"id": test["id"], "sentiment": test_pred})
-    result_output.to_csv("../result/transformer.csv", index=False, quoting=3)
+    result_output.to_csv("./result/transformer.csv", index=False, quoting=3)
     logging.info('result saved!')
-
