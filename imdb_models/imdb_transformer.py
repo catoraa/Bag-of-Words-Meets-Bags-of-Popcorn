@@ -18,8 +18,9 @@ from collections import defaultdict, Counter
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
+
 num_epochs = 10
-embed_size = 300
+embed_size = 120
 num_hiddens = 120
 num_layers = 2
 bidirectional = True
@@ -28,6 +29,7 @@ labels = 2
 lr = 0.05
 device = torch.device('cuda:0')
 use_gpu = True
+
 
 # Read data from files
 train = pd.read_csv("../test_data/labeledTrainData.tsv", header=0, delimiter="\t", quoting=3)
@@ -99,14 +101,13 @@ class Vocab:
 
 
 def length_to_mask(lengths):
-    max_length = torch.max(lengths)
-    mask = torch.arange(max_length).expand(lengths.shape[0], max_length) < lengths.unsqueeze(1)
+    max_length = lengths.max().item()
+    mask = torch.arange(max_length, device=lengths.device).expand(lengths.shape[0], max_length) < lengths.unsqueeze(1)
     return mask
 
 
-# 定位向量+编码
 class PositionalEncoding(nn.Module):
-    def __init__(self, d_model, dropout=0.1, max_len=10240):
+    def __init__(self, d_model, dropout=0.1, max_len=512):
         super(PositionalEncoding, self).__init__()
 
         pe = torch.zeros(max_len, d_model)
@@ -118,13 +119,13 @@ class PositionalEncoding(nn.Module):
         self.register_buffer('pe', pe)
 
     def forward(self, x):
-        x = x + self.pe[:x.size(0), :].to(x.device)  # 确保位置编码在相同设备上
+        x = x + self.pe[:x.size(0), :]
         return x
 
 
 class Transformer(nn.Module):
     def __init__(self, vocab_size, embedding_dim, hidden_dim, num_class,
-                 dim_feedforward=512, num_head=2, num_layers=2, dropout=0.1, max_len=128, activation: str = "relu"):
+                 dim_feedforward=512, num_head=2, num_layers=2, dropout=0.1, max_len=10000, activation: str = "relu"):
         super(Transformer, self).__init__()
         # 词嵌入层
         self.embedding_dim = embedding_dim
@@ -137,7 +138,7 @@ class Transformer(nn.Module):
         self.output = nn.Linear(hidden_dim, num_class)
 
     def forward(self, inputs, lengths):
-        inputs = torch.transpose(inputs, 0, 1)
+        #inputs = torch.transpose(inputs, 0, 1)
         hidden_states = self.embeddings(inputs)
         hidden_states = self.position_embedding(hidden_states)
         attention_mask = length_to_mask(lengths) == False
@@ -190,12 +191,12 @@ if __name__ == '__main__':
     train_reviews = [(vocab.convert_tokens_to_ids(sentence), train_labels[i])
                      for i, sentence in enumerate(clean_train_reviews)]
     test_reviews = [vocab.convert_tokens_to_ids(sentence)
-                    for sentence in clean_test_reviews]
+                     for sentence in clean_test_reviews]
 
     train_reviews, val_reviews, train_labels, val_labels = train_test_split(train_reviews, train_labels,
                                                                             test_size=0.2, random_state=0)
 
-    net = Transformer(vocab_size=len(vocab), embedding_dim=embed_size, hidden_dim=num_hiddens, num_class=labels)
+    net = Transformer(vocab_size=len(vocab), embedding_dim=embed_size, hidden_dim=num_hiddens, num_class=labels,)
     net.to(device)
     loss_function = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=lr)
@@ -215,7 +216,7 @@ if __name__ == '__main__':
         n, m = 0, 0
         with tqdm(total=len(train_iter), desc='Epoch %d' % epoch) as pbar:
             for feature, lengths, label in train_iter:
-                print(feature, lengths, label)
+                #print(feature, lengths, label)
                 n += 1
                 net.zero_grad()
                 feature = Variable(feature.cuda())
@@ -270,5 +271,6 @@ if __name__ == '__main__':
                 pbar.update(1)
 
     result_output = pd.DataFrame(data={"id": test["id"], "sentiment": test_pred})
-    result_output.to_csv("./result/transformer.csv", index=False, quoting=3)
+    result_output.to_csv("../result/transformer.csv", index=False, quoting=3)
     logging.info('result saved!')
+
