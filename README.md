@@ -22,6 +22,6 @@ test_data:测试数据集<br>
 | GRU                | 0.86  | 0.86  | 速度较快，效果还行                      |
 | LSTM               | 0.75  | 0.75  | 速度较快，效果一般                      |
 | RoBERTa_Trainer    | 0.95  | 0.95  | 适配了最新的库，kaggle跑出来了             |
-| Transformer        | /     | /     | size of tensor不匹配              |
+| Transformer        | /     | /     | transformer的前向传播缺少lengths参数?   |
 | BoW+RF             | /     | 0.85  | 速度较快，效果还行                      |
 | Word2Vec+RF        | /     | 0.83  | 速度较快，效果还行                      |
