@@ -138,7 +138,7 @@ class Transformer(nn.Module):
         self.output = nn.Linear(hidden_dim, num_class)
 
     def forward(self, inputs, lengths):
-        #inputs = torch.transpose(inputs, 0, 1)
+        inputs = torch.transpose(inputs, 0, 1)
         hidden_states = self.embeddings(inputs)
         hidden_states = self.position_embedding(hidden_states)
         attention_mask = length_to_mask(lengths) == False
