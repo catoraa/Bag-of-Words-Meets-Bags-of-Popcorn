@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     batch_size = 32
 
-    model_id = "microsoft/deberta-v2-xxlarge"
+    model_id = "microsoft/deberta-v3-xsmall"
 
     tokenizer = DebertaV2Tokenizer.from_pretrained(model_id)
 
