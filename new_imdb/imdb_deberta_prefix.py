@@ -12,8 +12,8 @@ from transformers import Trainer, TrainingArguments
 from peft import PrefixTuningConfig, get_peft_model, TaskType
 from sklearn.model_selection import train_test_split
 
-train = pd.read_csv("./corpus/imdb/labeledTrainData.tsv", header=0, delimiter="\t", quoting=3)
-test = pd.read_csv("./corpus/imdb/testData.tsv", header=0, delimiter="\t", quoting=3)
+train = pd.read_csv("/kaggle/input/bag-of-word/labeledTrainData.tsv", header=0, delimiter="\t", quoting=3)
+test = pd.read_csv("/kaggle/input/bag-of-word/testData.tsv", header=0, delimiter="\t", quoting=3)
 
 if __name__ == '__main__':
     program = os.path.basename(sys.argv[0])
@@ -104,5 +104,5 @@ if __name__ == '__main__':
     print(test_pred)
 
     result_output = pd.DataFrame(data={"id": test["id"], "sentiment": test_pred})
-    result_output.to_csv("./result/deberta_lora_int8.csv", index=False, quoting=3)
+    result_output.to_csv("./result/deberta_prefix.csv", index=False, quoting=3)
     logging.info('result saved!')
