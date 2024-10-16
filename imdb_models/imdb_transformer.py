@@ -107,7 +107,7 @@ def length_to_mask(lengths):
 
 
 class PositionalEncoding(nn.Module):
-    def __init__(self, d_model, dropout=0.1, max_len=512):
+    def __init__(self, d_model, dropout=0.1, max_len=5000):
         super(PositionalEncoding, self).__init__()
 
         pe = torch.zeros(max_len, d_model)
@@ -120,7 +120,7 @@ class PositionalEncoding(nn.Module):
 
     def forward(self, x):
         x = x + self.pe[:x.size(0), :]
-        return x
+        return self.dropout(x)
 
 
 class Transformer(nn.Module):

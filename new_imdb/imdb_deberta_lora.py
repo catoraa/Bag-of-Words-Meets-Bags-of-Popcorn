@@ -112,5 +112,5 @@ if __name__ == '__main__':
     print(test_pred)
 
     result_output = pd.DataFrame(data={"id": test["id"], "sentiment": test_pred})
-    result_output.to_csv("./result/deberta_lora.csv", index=False, quoting=3)
+    result_output.to_csv("/kaggle/working/deberta_lora.csv", index=False, quoting=3)
     logging.info('result saved!')
