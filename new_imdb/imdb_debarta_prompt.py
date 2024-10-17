@@ -9,13 +9,15 @@ import numpy as np
 
 from transformers import AutoModelForSequenceClassification, DebertaV2Tokenizer, DataCollatorWithPadding
 from transformers import Trainer, TrainingArguments
-from peft import PromptTuningConfig, get_peft_model, TaskType
+# pip install peft==0.12.0
+from peft import PromptTuningConfig, get_peft_model, TaskType, prepare_model_for_kbit_training
 from sklearn.model_selection import train_test_split
 
 train = pd.read_csv("/kaggle/input/bag-of-word/labeledTrainData.tsv", header=0, delimiter="\t", quoting=3)
 test = pd.read_csv("/kaggle/input/bag-of-word/testData.tsv", header=0, delimiter="\t", quoting=3)
 
 if __name__ == '__main__':
+    os.environ['WANDB_API_KEY'] = "e1a47aca16f2292eb9d8fe1d613c1ac623dd63a6"
     program = os.path.basename(sys.argv[0])
     logger = logging.getLogger(program)
 
@@ -59,7 +61,7 @@ if __name__ == '__main__':
     )
 
     # prepare int-8 model for training
-    # model = prepare_model_for_int8_training(model)
+    model = prepare_model_for_kbit_training(model)
 
     # add LoRA adaptor
     model = get_peft_model(model, peft_config)
