@@ -8,9 +8,9 @@ import pandas as pd
 import numpy as np
 
 from transformers import AutoModelForSequenceClassification, DebertaV2Tokenizer, DataCollatorWithPadding
-from transformers import Trainer, TrainingArguments
+from transformers import Trainer, TrainingArguments, BitsAndBytesConfig
 # pip install peft==0.12.0
-from peft import PromptEncoderConfig, get_peft_model, TaskType
+from peft import PromptEncoderConfig, get_peft_model, TaskType, prepare_model_for_kbit_training
 from sklearn.model_selection import train_test_split
 
 train = pd.read_csv("/kaggle/input/bag-of-word/labeledTrainData.tsv", header=0, delimiter="\t", quoting=3)
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
-    model = AutoModelForSequenceClassification.from_pretrained(model_id)
+    model = AutoModelForSequenceClassification.from_pretrained(model_id, quantization=BitsAndBytesConfig(load_in_4bit=True))
 
     # Define LoRA Config
     peft_config = PromptEncoderConfig(
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     )
 
     # prepare int-8 model for training
-    # model = prepare_model_for_int8_training(model)
+    model = prepare_model_for_kbit_training(model)
 
     # add LoRA adaptor
     model = get_peft_model(model, peft_config)
