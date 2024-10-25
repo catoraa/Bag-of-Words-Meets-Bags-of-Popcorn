@@ -25,4 +25,7 @@ test_data:测试数据集<br>
 | Transformer        | /     | /     | transformer的前向传播缺少lengths参数?   |
 | BoW+RF             | /     | 0.85  | 速度较快，效果还行                      |
 | Word2Vec+RF        | /     | 0.83  | 速度较快，效果还行                      |
-| deberta_lora       | 0.94  | 0.94  | 速度还行，效果不错                      |
+| Deberta_lora       | 0.94  | 0.94  | 速度还行，效果不错                      |
+| Deberta_prompt     | /     | /     |                                |
+| Deberta_prefix     | /     | /     |                                |
+| Deberta_ptuning    | /     | /     |                                |
