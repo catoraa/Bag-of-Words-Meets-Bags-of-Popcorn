@@ -17,7 +17,7 @@ train = pd.read_csv("/kaggle/input/bag-of-word/labeledTrainData.tsv", header=0, 
 test = pd.read_csv("/kaggle/input/bag-of-word/testData.tsv", header=0, delimiter="\t", quoting=3)
 
 if __name__ == '__main__':
-    os.environ['WANDB_API_KEY'] = "e1a47aca16f2292eb9d8fe1d613c1ac623dd63a6"
+    #os.environ['WANDB_API_KEY'] = "e1a47aca16f2292eb9d8fe1d613c1ac623dd63a6"
     program = os.path.basename(sys.argv[0])
     logger = logging.getLogger(program)
 
