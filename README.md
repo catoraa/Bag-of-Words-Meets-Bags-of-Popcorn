@@ -29,3 +29,4 @@ test_data:²âÊÔÊı¾İ¼¯<br>
 | Deberta_prompt     | /     | /     |                                |
 | Deberta_prefix     | /     | /     |                                |
 | Deberta_ptuning    | /     | /     |                                |
+| Bert_rdrop         | 0.93  | 0.94  |                                |

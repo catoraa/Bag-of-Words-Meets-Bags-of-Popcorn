@@ -42,6 +42,7 @@ class BertScratch(BertPreTrainedModel):
         # 问题修正，调整了labels参数调用的逻辑，无labels时不计算loss
         loss = None
         if labels is not None:
+            # 使用交叉熵作为损失函数
             loss_fct = nn.CrossEntropyLoss()
             loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
 

@@ -2,7 +2,9 @@ import os
 import sys
 import logging
 import datasets
-from losses import losses
+import evaluate
+
+import losses
 
 import torch.nn as nn
 
@@ -16,8 +18,8 @@ from transformers.modeling_outputs import SequenceClassifierOutput
 
 from sklearn.model_selection import train_test_split
 
-train = pd.read_csv("./corpus/imdb/labeledTrainData.tsv", header=0, delimiter="\t", quoting=3)
-test = pd.read_csv("./corpus/imdb/testData.tsv", header=0, delimiter="\t", quoting=3)
+train = pd.read_csv("../test_data/labeledTrainData.tsv", header=0, delimiter="\t", quoting=3)
+test = pd.read_csv("../test_data/testData.tsv", header=0, delimiter="\t", quoting=3)
 
 
 class BertScratch(BertPreTrainedModel):
@@ -38,9 +40,7 @@ class BertScratch(BertPreTrainedModel):
 
     def forward(self, input_ids=None, attention_mask=None, token_type_ids=None, labels=None):
         outputs = self.bert(input_ids, attention_mask, token_type_ids)
-
         pooled_output = outputs[1]
-
         pooled_output = self.dropout(pooled_output)
         logits = self.classifier(pooled_output)
 
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
     model = BertScratch.from_pretrained('bert-base-uncased')
 
-    metric = datasets.load_metric("accuracy")
+    metric = evaluate.load("accuracy")
 
 
     def compute_metrics(eval_pred):
@@ -134,5 +134,5 @@ if __name__ == '__main__':
     print(test_pred)
 
     result_output = pd.DataFrame(data={"id": test["id"], "sentiment": test_pred})
-    result_output.to_csv("./result/bert_scl.csv", index=False, quoting=3)
+    result_output.to_csv("../result/bert_scl.csv", index=False, quoting=3)
     logging.info('result saved!')

@@ -20,7 +20,7 @@ from sklearn.model_selection import train_test_split
 train = pd.read_csv("../test_data/labeledTrainData.tsv", header=0, delimiter="\t", quoting=3)
 test = pd.read_csv("../test_data/testData.tsv", header=0, delimiter="\t", quoting=3)
 
-
+# KL散度计算
 def KL(input, target, reduction="sum"):
     input = input.float()
     target = target.float()
@@ -55,13 +55,17 @@ class BertScratch(BertPreTrainedModel):
         kl_output = self.dropout(kl_output)
         kl_logits = self.classifier(kl_output)
 
-        loss = None
+        total_loss = None
         if labels is not None:
+            # 实例化损失函数
             loss_fct = nn.CrossEntropyLoss()
+            # logits和labels的交叉熵损失
             loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
-
+            # kl_logits和labels的交叉熵损失
             ce_loss = loss_fct(kl_logits.view(-1, self.num_labels), labels.view(-1))
+            # KL损失
             kl_loss = (KL(logits, kl_logits, "sum") + KL(kl_logits, logits, "sum")) / 2.
+            # 损失总和
             total_loss = loss + ce_loss + kl_loss
 
         return SequenceClassifierOutput(
