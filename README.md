@@ -31,5 +31,5 @@ test_data:测试数据集<br>
 | Deberta_prompt     | /     | /     |                                |
 | Deberta_prefix     | /     | /     |                                |
 | Deberta_ptuning    | /     | /     |                                |
-| Bert_rdrop         | 0.93  | 0.94  |                                |
-| Bert_scl           | 0.93  | 0.94  |                                |
+| BERT_rdrop         | 0.93  | 0.94  | 速度慢，效果不错                       |
+| BERT_scl           | 0.93  | 0.94  | 速度慢，效果不错                       |
