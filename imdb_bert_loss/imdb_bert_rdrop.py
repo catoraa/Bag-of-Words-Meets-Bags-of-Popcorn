@@ -2,7 +2,7 @@ import os
 import sys
 import logging
 import datasets
-
+import evaluate
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -17,8 +17,8 @@ from transformers.modeling_outputs import SequenceClassifierOutput
 
 from sklearn.model_selection import train_test_split
 
-train = pd.read_csv("./corpus/imdb/labeledTrainData.tsv", header=0, delimiter="\t", quoting=3)
-test = pd.read_csv("./corpus/imdb/testData.tsv", header=0, delimiter="\t", quoting=3)
+train = pd.read_csv("../test_data/labeledTrainData.tsv", header=0, delimiter="\t", quoting=3)
+test = pd.read_csv("../test_data/testData.tsv", header=0, delimiter="\t", quoting=3)
 
 
 def KL(input, target, reduction="sum"):
@@ -73,6 +73,8 @@ class BertScratch(BertPreTrainedModel):
 
 
 if __name__ == '__main__':
+    os.environ['WANDB_API_KEY'] = "e1a47aca16f2292eb9d8fe1d613c1ac623dd63a6"
+
     program = os.path.basename(sys.argv[0])
     logger = logging.getLogger(program)
 
@@ -105,7 +107,7 @@ if __name__ == '__main__':
 
     model = BertScratch.from_pretrained('bert-base-uncased')
 
-    metric = datasets.load_metric("accuracy")
+    metric = evaluate.load("accuracy")
 
 
     def compute_metrics(eval_pred):
@@ -117,7 +119,7 @@ if __name__ == '__main__':
     training_args = TrainingArguments(
         output_dir='./checkpoint',  # output directory
         num_train_epochs=3,  # total number of training epochs
-        per_device_train_batch_size=4,  # batch size per device during training
+        per_device_train_batch_size=6,  # batch size per device during training
         per_device_eval_batch_size=8,  # batch size for evaluation
         warmup_steps=500,  # number of warmup steps for learning rate scheduler
         weight_decay=0.01,  # strength of weight decay
@@ -144,5 +146,5 @@ if __name__ == '__main__':
     print(test_pred)
 
     result_output = pd.DataFrame(data={"id": test["id"], "sentiment": test_pred})
-    result_output.to_csv("./result/bert_scratch.csv", index=False, quoting=3)
+    result_output.to_csv("../result/bert_rdrop.csv", index=False, quoting=3)
     logging.info('result saved!')
