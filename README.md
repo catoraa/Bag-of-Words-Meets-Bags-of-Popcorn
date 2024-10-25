@@ -1,6 +1,8 @@
 
 文件夹内容如下：<br>
-imdb_models:提供的imdb预测模型，已修改以适配新版本的库<br>
+imdb_bert:bert类的imdb预测模型<br>
+imdb_deberta:deberta类的imdb预测模型<br>
+imdb_models:未归类的imdb预测模型<br>
 my_code:kaggle教程练习代码<br>
 result:各模型跑出的预测数据<br>
 test_data:测试数据集<br>
