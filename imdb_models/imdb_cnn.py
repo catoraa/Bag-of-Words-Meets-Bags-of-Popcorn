@@ -12,20 +12,18 @@ from torch import optim
 from torch.autograd import Variable
 from tqdm import tqdm
 
-
 from sklearn.metrics import accuracy_score
-
 
 test = pd.read_csv("../test_data/testData.tsv", header=0, delimiter="\t", quoting=3)
 
-num_epochs = 20
-embed_size = 300
+num_epochs = 20  # 迭代次数
+embed_size = 300  # 嵌入层大小
 num_filter = 128
-filter_size = 3
-bidirectional = True
+filter_size = 3  #
+bidirectional = True  # 双向
 batch_size = 64
 labels = 2
-lr = 0.8
+lr = 0.8  #学习率
 device = torch.device('cuda:0')
 use_gpu = True
 
@@ -34,21 +32,19 @@ class SentimentNet(nn.Module):
     def __init__(self, embed_size, num_filter, filter_size, weight, labels, use_gpu, **kwargs):
         super(SentimentNet, self).__init__(**kwargs)
         self.use_gpu = use_gpu
-        self.embedding = nn.Embedding.from_pretrained(weight)
+        self.embedding = nn.Embedding.from_pretrained(weight)  # 嵌入层
         self.embedding.weight.requires_grad = False
 
         self.conv1d = nn.Conv1d(embed_size, num_filter, filter_size, padding=1)
         self.activate = F.relu
         self.decoder = nn.Linear(num_filter, labels)
 
-
     def forward(self, inputs):
         embeddings = self.embedding(inputs)
 
-        convolution = self.activate(self.conv1d(embeddings.permute([0, 2, 1])))
-        pooling = F.max_pool1d(convolution, kernel_size=convolution.shape[2])
-
-        outputs = self.decoder(pooling.squeeze(dim=2))
+        convolution = self.activate(self.conv1d(embeddings.permute([0, 2, 1])))  # 卷积层
+        pooling = F.max_pool1d(convolution, kernel_size=convolution.shape[2])  # 池化层
+        outputs = self.decoder(pooling.squeeze(dim=2)) # 解码输出层
         # print(outputs)
         return outputs
 
@@ -64,13 +60,13 @@ if __name__ == '__main__':
     logging.info('loading data...')
     pickle_file = 'imdb_glove.pickle3'
     [train_features, train_labels, val_features, val_labels, test_features, weight, word_to_idx, idx_to_word,
-            vocab] = pickle.load(open(pickle_file, 'rb'))
+     vocab] = pickle.load(open(pickle_file, 'rb'))
     logging.info('data loaded!')
 
     net = SentimentNet(embed_size=embed_size, num_filter=num_filter, filter_size=filter_size,
                        weight=weight, labels=labels, use_gpu=use_gpu)
-    net.to(device)
-    loss_function = nn.CrossEntropyLoss()
+    net.to(device) # 将网络转移到GPU
+    loss_function = nn.CrossEntropyLoss() #交叉熵损失函数
     optimizer = optim.SGD(net.parameters(), lr=lr)
 
     train_set = torch.utils.data.TensorDataset(train_features, train_labels)
@@ -80,7 +76,7 @@ if __name__ == '__main__':
     train_iter = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
     val_iter = torch.utils.data.DataLoader(val_set, batch_size=batch_size, shuffle=False)
     test_iter = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False)
-
+    # 可视化训练过程
     for epoch in range(num_epochs):
         start = time.time()
         train_loss, val_losses = 0, 0
@@ -141,4 +137,3 @@ if __name__ == '__main__':
     result_output = pd.DataFrame(data={"id": test["id"], "sentiment": test_pred})
     result_output.to_csv("../result/cnn.csv", index=False, quoting=3)
     logging.info('result saved!')
-

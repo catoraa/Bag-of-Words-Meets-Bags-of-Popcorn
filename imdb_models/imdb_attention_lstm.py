@@ -14,19 +14,18 @@ from tqdm import tqdm
 
 from sklearn.metrics import accuracy_score
 
-
 test = pd.read_csv("../test_data/testData.tsv", header=0, delimiter="\t", quoting=3)
 
-num_epochs = 10
-embed_size = 300
-num_hiddens = 128
-num_layers = 2
-bidirectional = True
-batch_size = 64
-labels = 2
-lr = 0.01
-device = torch.device('cuda:0')
-use_gpu = True
+num_epochs = 10 # 迭代次数
+embed_size = 300  # 嵌入层大小
+num_hiddens = 128  # 隐藏层大小
+num_layers = 2  # LSTM单元数量
+bidirectional = True  # 是否双向
+batch_size = 64 # batch_size大小
+labels = 2  # label列数
+lr = 0.01  # 初始学习率
+device = torch.device('cuda:0')  # 设定计算设备为显卡
+use_gpu = True  # 设定计算设备为显卡
 
 
 class Attention(nn.Module):
@@ -96,7 +95,7 @@ if __name__ == '__main__':
     logging.info('loading data...')
     pickle_file = 'imdb_glove.pickle3'
     [train_features, train_labels, val_features, val_labels, test_features, weight, word_to_idx, idx_to_word,
-            vocab] = pickle.load(open(pickle_file, 'rb'))
+     vocab] = pickle.load(open(pickle_file, 'rb'))
     logging.info('data loaded!')
 
     net = SentimentNet(embed_size=embed_size, num_hiddens=num_hiddens, num_layers=num_layers,
@@ -175,4 +174,3 @@ if __name__ == '__main__':
     result_output = pd.DataFrame(data={"id": test["id"], "sentiment": test_pred})
     result_output.to_csv("../result/attention_lstm.csv", index=False, quoting=3)
     logging.info('result saved!')
-
