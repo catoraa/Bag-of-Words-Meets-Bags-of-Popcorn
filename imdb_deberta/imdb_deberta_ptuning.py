@@ -37,13 +37,13 @@ if __name__ == '__main__':
 
     batch_size = 32
 
-    model_id = "microsoft/deberta-v3-xsmall"
+    model_id = "microsoft/deberta-v3-large"
 
     tokenizer = DebertaV2Tokenizer.from_pretrained(model_id)
 
 
     def preprocess_function(examples):
-        return tokenizer(examples['text'], truncation=True)
+        return tokenizer(examples['text'], truncation=True,padding='max_length', max_length=510)
 
 
     tokenized_train = train_dataset.map(preprocess_function, batched=True)

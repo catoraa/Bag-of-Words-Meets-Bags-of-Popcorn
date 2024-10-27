@@ -18,7 +18,6 @@ from collections import defaultdict, Counter
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
-
 num_epochs = 10
 embed_size = 120
 num_hiddens = 120
@@ -30,31 +29,20 @@ lr = 0.05
 device = torch.device('cuda:0')
 use_gpu = True
 
-
 # Read data from files
 train = pd.read_csv("../test_data/labeledTrainData.tsv", header=0, delimiter="\t", quoting=3)
 test = pd.read_csv("../test_data/testData.tsv", header=0, delimiter="\t", quoting=3)
 
 
 def review_to_wordlist(review, remove_stopwords=False):
-    # Function to convert a document to a sequence of words,
-    # optionally removing stop words.  Returns a list of words.
-    #
-    # 1. Remove HTML
     review_text = BeautifulSoup(review, "lxml").get_text()
-    #
-    # 2. Remove non-letters
     review_text = re.sub("[^a-zA-Z]", " ", review_text)
-    #
-    # 3. Convert words to lower case and split them
+
     words = review_text.lower().split()
-    #
-    # 4. Optionally remove stop words (false by default)
+
     # if remove_stopwords:
     #     stops = set(stopwords.words("english"))
     #     words = [w for w in words if not w in stops]
-    #
-    # 5. Return a list of words
     return ' '.join(words)
 
 
@@ -191,12 +179,12 @@ if __name__ == '__main__':
     train_reviews = [(vocab.convert_tokens_to_ids(sentence), train_labels[i])
                      for i, sentence in enumerate(clean_train_reviews)]
     test_reviews = [vocab.convert_tokens_to_ids(sentence)
-                     for sentence in clean_test_reviews]
+                    for sentence in clean_test_reviews]
 
     train_reviews, val_reviews, train_labels, val_labels = train_test_split(train_reviews, train_labels,
                                                                             test_size=0.2, random_state=0)
 
-    net = Transformer(vocab_size=len(vocab), embedding_dim=embed_size, hidden_dim=num_hiddens, num_class=labels,)
+    net = Transformer(vocab_size=len(vocab), embedding_dim=embed_size, hidden_dim=num_hiddens, num_class=labels, )
     net.to(device)
     loss_function = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=lr)
@@ -264,7 +252,8 @@ if __name__ == '__main__':
         with tqdm(total=len(test_iter), desc='Prediction') as pbar:
             for test_feature, in test_iter:
                 test_feature = test_feature.cuda()
-                test_score = net(test_feature)
+                test_lenth = test_lenth.cuda()
+                test_score = net(test_feature, test_lenth)
                 # test_pred.extent
                 test_pred.extend(torch.argmax(test_score.cpu().data, dim=1).numpy().tolist())
 
@@ -273,4 +262,3 @@ if __name__ == '__main__':
     result_output = pd.DataFrame(data={"id": test["id"], "sentiment": test_pred})
     result_output.to_csv("../result/transformer.csv", index=False, quoting=3)
     logging.info('result saved!')
-

@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 
 from transformers import AutoModelForSequenceClassification, DebertaV2Tokenizer, DataCollatorWithPadding
-from transformers import Trainer, TrainingArguments
+from transformers import Trainer, TrainingArguments,BitsAndBytesConfig
 #pip install peft==0.12.0
 from peft import PromptTuningConfig, get_peft_model, TaskType, prepare_model_for_kbit_training
 from sklearn.model_selection import train_test_split
@@ -37,13 +37,13 @@ if __name__ == '__main__':
 
     batch_size = 32
 
-    model_id = "microsoft/deberta-v3-xsmall"
+    model_id = "microsoft/deberta-v3-large"
 
     tokenizer = DebertaV2Tokenizer.from_pretrained(model_id)
 
 
     def preprocess_function(examples):
-        return tokenizer(examples['text'], truncation=True)
+        return tokenizer(examples['text'], truncation=True,padding='max_length', max_length=510)
 
 
     tokenized_train = train_dataset.map(preprocess_function, batched=True)
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
-    model = AutoModelForSequenceClassification.from_pretrained(model_id)
+    model = AutoModelForSequenceClassification.from_pretrained(model_id,load_in_4bit=True)
 
     # Define LoRA Config
     peft_config = PromptTuningConfig(
