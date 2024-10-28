@@ -12,9 +12,7 @@ from torch import optim
 from torch.autograd import Variable
 from tqdm import tqdm
 
-
 from sklearn.metrics import accuracy_score
-
 
 test = pd.read_csv("../test_data/testData.tsv", header=0, delimiter="\t", quoting=3)
 
@@ -38,8 +36,10 @@ use_gpu = True
 
 
 class SentimentNet(nn.Module):
-    def __init__(self, embed_size, num_filter, filter_size, num_hiddens, num_layers, bidirectional, weight, labels, use_gpu, **kwargs):
+    def __init__(self, embed_size, num_filter, filter_size, num_hiddens, num_layers, bidirectional, weight, labels,
+                 use_gpu, **kwargs):
         super(SentimentNet, self).__init__(**kwargs)
+        # 传入参数
         self.embed_size = embed_size
         self.num_filter = num_filter
         self.filter_size = filter_size
@@ -56,27 +56,27 @@ class SentimentNet(nn.Module):
         self.conv1d = nn.Conv1d(self.embed_size, self.num_filter, self.filter_size, padding=1)
         self.activate = F.relu
 
-        self.encoder = nn.LSTM(input_size=max_len//pooling_size, hidden_size=self.num_hiddens,
-                              num_layers=self.num_layers, bidirectional=self.bidirectional,
-                              dropout=0)
-
+        self.encoder = nn.LSTM(input_size=max_len // pooling_size, hidden_size=self.num_hiddens,
+                               num_layers=self.num_layers, bidirectional=self.bidirectional,
+                               dropout=0)
+        # 双向LSTM决策
         if self.bidirectional:
             self.decoder = nn.Linear(num_hiddens * 4, labels)
         else:
             self.decoder = nn.Linear(num_hiddens * 2, labels)
 
-
     def forward(self, inputs):
+        # 嵌入层
         embeddings = self.embedding(inputs)
 
-        # cnn
-        convolution = self.activate(self.conv1d(embeddings.permute([0, 2, 1])))
-        pooling = F.max_pool1d(convolution, kernel_size=pooling_size)
+        # cnn模块
+        convolution = self.activate(self.conv1d(embeddings.permute([0, 2, 1])))  # 卷积层
+        pooling = F.max_pool1d(convolution, kernel_size=pooling_size)  # 池化层
 
-        # lstm (seq_len, batch_size, hidden_dim)
-        states, hidden = self.encoder(pooling.permute([1, 0, 2]))
-        encoding = torch.cat([states[0], states[-1]], dim=1)
-
+        # lstm模块 (seq_len, batch_size, hidden_dim)
+        states, hidden = self.encoder(pooling.permute([1, 0, 2]))  # 状态层和隐藏层
+        encoding = torch.cat([states[0], states[-1]], dim=1)  # 编码
+        # 解码
         outputs = self.decoder(encoding)
         return outputs
 
@@ -92,13 +92,13 @@ if __name__ == '__main__':
     logging.info('loading data...')
     pickle_file = 'imdb_glove.pickle3'
     [train_features, train_labels, val_features, val_labels, test_features, weight, word_to_idx, idx_to_word,
-            vocab] = pickle.load(open(pickle_file, 'rb'))
+     vocab] = pickle.load(open(pickle_file, 'rb'))
     logging.info('data loaded!')
 
     net = SentimentNet(embed_size=embed_size, num_filter=num_filter, filter_size=filter_size,
                        num_hiddens=num_hiddens, num_layers=num_layers, bidirectional=bidirectional,
                        weight=weight, labels=labels, use_gpu=use_gpu)
-    net.to(device)
+    net.to(device)  # 移动net到GPU
     loss_function = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=lr)
 
@@ -109,7 +109,6 @@ if __name__ == '__main__':
     train_iter = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
     val_iter = torch.utils.data.DataLoader(val_set, batch_size=batch_size, shuffle=False)
     test_iter = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False)
-
 
     for epoch in range(num_epochs):
         start = time.time()
@@ -171,4 +170,3 @@ if __name__ == '__main__':
     result_output = pd.DataFrame(data={"id": test["id"], "sentiment": test_pred})
     result_output.to_csv("../result/cnnlstm.csv", index=False, quoting=3)
     logging.info('result saved!')
-
