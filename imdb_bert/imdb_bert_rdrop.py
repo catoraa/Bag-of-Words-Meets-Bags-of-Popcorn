@@ -1,4 +1,5 @@
 import os
+os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 import sys
 import logging
 import datasets
@@ -16,6 +17,7 @@ from transformers import BertPreTrainedModel, BertModel
 from transformers.modeling_outputs import SequenceClassifierOutput
 
 from sklearn.model_selection import train_test_split
+
 
 train = pd.read_csv("../test_data/labeledTrainData.tsv", header=0, delimiter="\t", quoting=3)
 test = pd.read_csv("../test_data/testData.tsv", header=0, delimiter="\t", quoting=3)
