@@ -9,7 +9,7 @@ import numpy as np
 
 from transformers import AutoModelForSequenceClassification, DebertaV2Tokenizer, DataCollatorWithPadding
 from transformers import Trainer, TrainingArguments
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, TaskType
+from peft import LoraConfig, get_peft_model, TaskType
 from sklearn.model_selection import train_test_split
 
 train = pd.read_csv("/kaggle/input/bag-of-word/labeledTrainData.tsv", header=0, delimiter="\t", quoting=3)
