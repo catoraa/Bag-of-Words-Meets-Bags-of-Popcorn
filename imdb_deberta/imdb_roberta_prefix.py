@@ -1,4 +1,5 @@
 import os
+os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 import sys
 import logging
 import datasets
@@ -7,7 +8,7 @@ import evaluate
 import pandas as pd
 import numpy as np
 
-from transformers import AutoModelForSequenceClassification, RobertaTokenizerFast, DataCollatorWithPadding
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, DataCollatorWithPadding
 from transformers import Trainer, TrainingArguments
 # pip install peft==0.12.0
 from peft import PrefixTuningConfig, get_peft_model, TaskType
@@ -17,7 +18,7 @@ train = pd.read_csv("/kaggle/input/bag-of-word/labeledTrainData.tsv", header=0, 
 test = pd.read_csv("/kaggle/input/bag-of-word/testData.tsv", header=0, delimiter="\t", quoting=3)
 
 if __name__ == '__main__':
-    os.environ['WANDB_API_KEY'] = "e1a47aca16f2292eb9d8fe1d613c1ac623dd63a6"
+    #os.environ['WANDB_API_KEY'] = "e1a47aca16f2292eb9d8fe1d613c1ac623dd63a6"
     program = os.path.basename(sys.argv[0])
     logger = logging.getLogger(program)
 
@@ -37,7 +38,7 @@ if __name__ == '__main__':
 
     model_id = "roberta-base"
 
-    tokenizer = RobertaTokenizerFast.from_pretrained(model_id)
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
 
 
     def preprocess_function(examples):
