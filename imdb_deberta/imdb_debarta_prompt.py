@@ -35,8 +35,6 @@ if __name__ == '__main__':
     val_dataset = datasets.Dataset.from_dict(val_dict)
     test_dataset = datasets.Dataset.from_dict(test_dict)
 
-    batch_size = 32
-
     model_id = "microsoft/deberta-v3-large"
 
     tokenizer = DebertaV2Tokenizer.from_pretrained(model_id)

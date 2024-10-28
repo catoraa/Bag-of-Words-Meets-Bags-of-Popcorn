@@ -7,7 +7,7 @@ import evaluate
 import pandas as pd
 import numpy as np
 
-from transformers import AutoModelForSequenceClassification, DebertaV2Tokenizer, DataCollatorWithPadding
+from transformers import AutoModelForSequenceClassification, RobertaTokenizerFast, DataCollatorWithPadding
 from transformers import Trainer, TrainingArguments
 # pip install peft==0.12.0
 from peft import PrefixTuningConfig, get_peft_model, TaskType
@@ -35,15 +35,13 @@ if __name__ == '__main__':
     val_dataset = datasets.Dataset.from_dict(val_dict)
     test_dataset = datasets.Dataset.from_dict(test_dict)
 
-    batch_size = 32
+    model_id = "roberta-base"
 
-    model_id = "microsoft/deberta-v3-large"
-
-    tokenizer = DebertaV2Tokenizer.from_pretrained(model_id)
+    tokenizer = RobertaTokenizerFast.from_pretrained(model_id)
 
 
     def preprocess_function(examples):
-        return tokenizer(examples['text'], truncation=True,padding='max_length', max_length=510)
+        return tokenizer(examples['text'], truncation=True)
 
 
     tokenized_train = train_dataset.map(preprocess_function, batched=True)
@@ -54,7 +52,7 @@ if __name__ == '__main__':
 
     model = AutoModelForSequenceClassification.from_pretrained(model_id)
 
-    # Define LoRA Config
+    # 微调参数注入
     peft_config = PrefixTuningConfig(
         num_virtual_tokens=20,
         task_type=TaskType.SEQ_CLS
@@ -77,10 +75,11 @@ if __name__ == '__main__':
 
 
     training_args = TrainingArguments(
-        output_dir='./checkpoint',  # output directory
+        output_dir='./roberta_prefix',  # output directory
         num_train_epochs=3,  # total number of training epochs
-        per_device_train_batch_size=2,  # batch size per device during training
-        per_device_eval_batch_size=4,  # batch size for evaluation
+        per_device_train_batch_size=4,  # batch size per device during training
+        per_device_eval_batch_size=8,  # batch size for evaluation
+        learning_rate=5e-6,
         warmup_steps=500,  # number of warmup steps for learning rate scheduler
         weight_decay=0.01,  # strength of weight decay
         logging_dir='./logs',  # directory for storing logs
@@ -106,5 +105,5 @@ if __name__ == '__main__':
     print(test_pred)
 
     result_output = pd.DataFrame(data={"id": test["id"], "sentiment": test_pred})
-    result_output.to_csv("/kaggle/working/deberta_prefix.csv", index=False, quoting=3)
+    result_output.to_csv("/kaggle/working/roberta_prefix.csv", index=False, quoting=3)
     logging.info('result saved!')
