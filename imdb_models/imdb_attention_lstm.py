@@ -35,6 +35,7 @@ class Attention(nn.Module):
         self.bidirectional = bidirectional
 
         # if bidirectional, then double the hidden dimensionality
+        # 双向LSTM设定
         if self.bidirectional:
             self.w_omega = nn.Parameter(torch.Tensor(num_hiddens * 2, num_hiddens * 2))
             self.u_omega = nn.Parameter(torch.Tensor(num_hiddens * 2, 1))
@@ -97,12 +98,14 @@ if __name__ == '__main__':
     [train_features, train_labels, val_features, val_labels, test_features, weight, word_to_idx, idx_to_word,
      vocab] = pickle.load(open(pickle_file, 'rb'))
     logging.info('data loaded!')
-
+    # net的参数导入
     net = SentimentNet(embed_size=embed_size, num_hiddens=num_hiddens, num_layers=num_layers,
                        bidirectional=bidirectional, weight=weight,
                        labels=labels, use_gpu=use_gpu)
     net.to(device)
+    # 交叉熵作为损失函数
     loss_function = nn.CrossEntropyLoss()
+    # 使用adam作为优化器
     optimizer = optim.Adam(net.parameters(), lr=lr)
 
     train_set = torch.utils.data.TensorDataset(train_features, train_labels)

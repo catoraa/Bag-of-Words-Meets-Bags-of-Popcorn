@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
 
     training_args = TrainingArguments(
-        output_dir='./checkpoint',  # output directory
+        output_dir='./trainer',  # output directory
         num_train_epochs=3,  # total number of training epochs
         per_device_train_batch_size=16,  # batch size per device during training
         per_device_eval_batch_size=32,  # batch size for evaluation
