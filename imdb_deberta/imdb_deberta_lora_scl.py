@@ -1,38 +1,85 @@
+import logging
 import os
 import sys
-import logging
+from typing import Optional, Tuple, Union
+
+import torch
+
+sys.path.append("../input")
 import datasets
 import evaluate
-from transformers.modeling_outputs import SequenceClassifierOutput
-
-import losses
-
-import pandas as pd
 import numpy as np
-
-from transformers import AutoModelForSequenceClassification, DebertaV2Tokenizer, DataCollatorWithPadding
-from transformers import Trainer, TrainingArguments,DebertaForSequenceClassification
+import pandas as pd
+import torch.nn as nn
 from peft import LoraConfig, get_peft_model, TaskType
 from sklearn.model_selection import train_test_split
+from transformers import DebertaV2Tokenizer, DataCollatorWithPadding, DebertaV2PreTrainedModel, DebertaV2Model
+from transformers import Trainer, TrainingArguments
+from transformers.modeling_outputs import SequenceClassifierOutput
+from transformers.models.deberta_v2.modeling_deberta_v2 import ContextPooler, StableDropout
 
-import torch.nn as nn
+import losses
 
 train = pd.read_csv("/kaggle/input/bag-of-word/labeledTrainData.tsv", header=0, delimiter="\t", quoting=3)
 test = pd.read_csv("/kaggle/input/bag-of-word/testData.tsv", header=0, delimiter="\t", quoting=3)
 
 
-class CustomModelForSequenceClassification(AutoModelForSequenceClassification):
-    def __init__(self, config, alpha=0.5):
+class DebertaLoraScl(DebertaV2PreTrainedModel):
+    def __init__(self, config):
         super().__init__(config)
-        self.alpha = alpha
+        self.alpha = 0.2
+        num_labels = getattr(config, "num_labels", 2)
+        self.num_labels = num_labels
 
-    def forward(self, input_ids, attention_mask=None, labels=None, **kwargs):
-        outputs = super().forward(input_ids, attention_mask=attention_mask, **kwargs)
-        logits = outputs.logits
-        pooled_output = logits  # 假设 pooled_output 是第一个返回的输出
+        self.deberta = DebertaV2Model(config)
+        self.pooler = ContextPooler(config)
+        output_dim = self.pooler.output_dim
+
+        self.classifier = nn.Linear(output_dim, num_labels)
+        drop_out = getattr(config, "cls_dropout", None)
+        drop_out = self.config.hidden_dropout_prob if drop_out is None else drop_out
+        self.dropout = StableDropout(drop_out)
+
+        self.post_init()
+
+    def get_input_embeddings(self):
+        return self.deberta.get_input_embeddings()
+
+    def set_input_embeddings(self, new_embeddings):
+        self.deberta.set_input_embeddings(new_embeddings)
+
+    def forward(
+            self,
+            input_ids: Optional[torch.Tensor] = None,
+            attention_mask: Optional[torch.Tensor] = None,
+            token_type_ids: Optional[torch.Tensor] = None,
+            position_ids: Optional[torch.Tensor] = None,
+            inputs_embeds: Optional[torch.Tensor] = None,
+            labels: Optional[torch.Tensor] = None,
+            output_attentions: Optional[bool] = None,
+            output_hidden_states: Optional[bool] = None,
+            return_dict: Optional[bool] = None,
+    ) -> Union[Tuple, SequenceClassifierOutput]:
+
+        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+
+        outputs = self.deberta(
+            input_ids,
+            token_type_ids=token_type_ids,
+            attention_mask=attention_mask,
+            position_ids=position_ids,
+            inputs_embeds=inputs_embeds,
+            output_attentions=output_attentions,
+            output_hidden_states=output_hidden_states,
+            return_dict=return_dict,
+        )
+
+        encoder_layer = outputs[0]
+        pooled_output = self.pooler(encoder_layer)
+        pooled_output = self.dropout(pooled_output)
+        logits = self.classifier(pooled_output)
 
         loss = None
-
         if labels is not None:
             loss_fct = nn.CrossEntropyLoss()
             ce_loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
@@ -42,7 +89,13 @@ class CustomModelForSequenceClassification(AutoModelForSequenceClassification):
 
             loss = ce_loss + self.alpha * scl_loss
 
-        return (loss, logits) if loss is not None else logits
+        if not return_dict:
+            output = (logits,) + outputs[1:]
+            return ((loss,) + output) if loss is not None else output
+
+        return SequenceClassifierOutput(
+            loss=loss, logits=logits, hidden_states=outputs.hidden_states, attentions=outputs.attentions
+        )
 
 
 if __name__ == '__main__':
@@ -70,7 +123,7 @@ if __name__ == '__main__':
 
 
     def preprocess_function(examples):
-        return tokenizer(examples['text'], truncation=True,padding='max_length', max_length=510)
+        return tokenizer(examples['text'], truncation=True, padding='max_length', max_length=510)
 
 
     tokenized_train = train_dataset.map(preprocess_function, batched=True)
@@ -79,7 +132,7 @@ if __name__ == '__main__':
 
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
-    model = AutoModelForSequenceClassification.from_pretrained(model_id,)
+    model = DebertaLoraScl.from_pretrained(model_id)
 
     # 设定LoRAConfig
     lora_config = LoraConfig(
@@ -105,7 +158,7 @@ if __name__ == '__main__':
 
 
     training_args = TrainingArguments(
-        output_dir='./checkpoint',  # output directory
+        output_dir='./deberta_lora_scl',  # output directory
         num_train_epochs=3,  # total number of training epochs
         per_device_train_batch_size=2,  # batch size per device during training
         per_device_eval_batch_size=4,  # batch size for evaluation

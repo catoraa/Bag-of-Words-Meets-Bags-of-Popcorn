@@ -7,7 +7,7 @@ import evaluate
 import pandas as pd
 import numpy as np
 
-from transformers import AutoModelForSequenceClassification, DebertaV2Tokenizer, DataCollatorWithPadding
+from transformers import DebertaV2ForSequenceClassification, DebertaV2Tokenizer, DataCollatorWithPadding
 from transformers import Trainer, TrainingArguments
 from peft import LoraConfig, get_peft_model, TaskType
 from sklearn.model_selection import train_test_split
@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
-    model = AutoModelForSequenceClassification.from_pretrained(
+    model = DebertaV2ForSequenceClassification.from_pretrained(
         model_id,
         # device_map="auto",
         # load_in_8bit=True
