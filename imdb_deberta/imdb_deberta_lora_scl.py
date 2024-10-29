@@ -15,9 +15,10 @@ import pandas as pd
 import torch.nn as nn
 from peft import LoraConfig, get_peft_model, TaskType
 from sklearn.model_selection import train_test_split
-from transformers import DebertaV2Tokenizer, DataCollatorWithPadding, DebertaV2PreTrainedModel, DebertaV2Model
+
 from transformers import Trainer, TrainingArguments
 from transformers.modeling_outputs import SequenceClassifierOutput
+from transformers import DebertaV2Tokenizer, DataCollatorWithPadding, DebertaV2PreTrainedModel, DebertaV2Model
 from transformers.models.deberta_v2.modeling_deberta_v2 import ContextPooler, StableDropout
 
 import losses
@@ -101,7 +102,6 @@ class DebertaLoraScl(DebertaV2PreTrainedModel):
 
 
 if __name__ == '__main__':
-    os.environ['WANDB_API_KEY'] = "e1a47aca16f2292eb9d8fe1d613c1ac623dd63a6"
     program = os.path.basename(sys.argv[0])
     logger = logging.getLogger(program)
 
@@ -140,38 +140,39 @@ if __name__ == '__main__':
     lora_config = LoraConfig(
         r=16,
         lora_alpha=32,
+        # 此处不用手动设定target_modules，而是由lora自动适配
         #target_modules=['q_proj', 'v_proj'],
         lora_dropout=0.05,
         bias="none",
         task_type=TaskType.SEQ_CLS
     )
 
-    # 添加LoRA
+    # 加载LoRA到模型上
     model = get_peft_model(model, lora_config)
     model.print_trainable_parameters()
 
     metric = evaluate.load("accuracy")
 
-
+    # 训练指标计算
     def compute_metrics(eval_pred):
         logits, labels = eval_pred
         predictions = np.argmax(logits, axis=-1)
         return metric.compute(predictions=predictions, references=labels)
 
-
+    # 训练过程可视化
     training_args = TrainingArguments(
-        output_dir='./deberta_lora_scl',  # output directory
-        num_train_epochs=3,  # total number of training epochs
-        per_device_train_batch_size=2,  # batch size per device during training
-        per_device_eval_batch_size=4,  # batch size for evaluation
-        warmup_steps=500,  # number of warmup steps for learning rate scheduler
-        weight_decay=0.01,  # strength of weight decay
-        logging_dir='./logs',  # directory for storing logs
+        output_dir='./deberta_lora_scl',  # 输出文件夹，即wandb上显示的名字
+        num_train_epochs=3,  # 迭代次数
+        per_device_train_batch_size=2,  # 训练batch_size
+        per_device_eval_batch_size=4,  # 评估batch_size
+        warmup_steps=500,  # 学习率热身步数
+        weight_decay=0.01,  # 权重衰减系数
+        logging_dir='./logs',  # logs存储目录
         logging_steps=100,
         save_strategy="no",
         evaluation_strategy="epoch"
     )
-
+    # 训练参数
     trainer = Trainer(
         model=model,  # the instantiated 🤗 Transformers model to be trained
         args=training_args,  # training arguments, defined above
@@ -181,7 +182,7 @@ if __name__ == '__main__':
         data_collator=data_collator,
         compute_metrics=compute_metrics,
     )
-
+    # 调用trainer训练模型
     trainer.train()
 
     prediction_outputs = trainer.predict(tokenized_test)
