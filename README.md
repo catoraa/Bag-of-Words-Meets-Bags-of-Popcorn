@@ -28,8 +28,10 @@ test_data:测试数据集<br>
 | BoW+RF             | /     | 85%   | 速度较快，效果还行                      |
 | Word2Vec+RF        | /     | 83%   | 速度较快，效果还行                      |
 | Deberta_lora       | 97%   | 97%   | 速度慢，效果全场最佳                     |
+| Deberta_lora_scl   | 96%   | 97%   | 速度慢，效果全场最佳                     |
 | Deberta_prompt     | 71%   | 71%   | 速度慢，效果一般                       |
 | Deberta_prefix     | /     | /     | 模型不兼容                          |
 | Deberta_ptuning    | 58%   | 58%   | 速度慢，效果差                        |
 | BERT_rdrop         | 93%   | 94%   | 速度慢，效果不错                       |
 | BERT_scl           | 93%   | 94%   | 速度慢，效果不错                       |
+
