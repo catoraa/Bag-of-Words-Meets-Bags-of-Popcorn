@@ -3,9 +3,11 @@ import os
 import sys
 from typing import Optional, Tuple, Union
 
-import torch
-
+os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
+os.environ['WANDB_API_KEY'] = "e1a47aca16f2292eb9d8fe1d613c1ac623dd63a6"
 sys.path.append("../input")
+
+import torch
 import datasets
 import evaluate
 import numpy as np
