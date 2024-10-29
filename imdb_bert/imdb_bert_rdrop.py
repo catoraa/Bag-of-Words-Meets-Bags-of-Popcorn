@@ -1,5 +1,6 @@
 import os
 os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
+
 import sys
 import logging
 import datasets
@@ -79,7 +80,7 @@ class BertScratch(BertPreTrainedModel):
 
 
 if __name__ == '__main__':
-    os.environ['WANDB_API_KEY'] = "e1a47aca16f2292eb9d8fe1d613c1ac623dd63a6"
+
 
     program = os.path.basename(sys.argv[0])
     logger = logging.getLogger(program)
