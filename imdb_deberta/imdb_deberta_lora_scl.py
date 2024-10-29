@@ -4,6 +4,7 @@ import sys
 from typing import Optional, Tuple, Union
 
 os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
+#os.environ['WANDB_API_KEY'] = ""
 sys.path.append("../input")
 
 import torch
